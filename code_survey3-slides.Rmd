@@ -1,0 +1,665 @@
+---
+title: "NOlympics Survey"
+subtitle: ""
+author: ""
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, ## fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+
+
+```
+
+```{r setup2, echo = FALSE, results = 'hide', message = FALSE, warning= FALSE, cache= FALSE}
+# devtools::install_github("hrbrmstr/hrbrthemes")
+
+oldw <- getOption("warn")
+options(warn = -1)
+
+# [your "silenced" code]
+
+# options(warn = oldw)
+
+# devtools::install_github("tidyverse/ggplot2", force = TRUE)
+# library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(forcats)
+# library(ggplot2)
+library(scales)
+library(hrbrthemes)
+library(extrafont)
+library(forcats)
+
+# devtools::install_github('ramnathv/slidify',ref="dev")
+# devtools::install_github('ramnathv/slidifyLibraries',ref="dev")
+# library(slidify)
+# install.packages("revealjs", type = "source")
+source("C:/Users/azada/OneDrive/@Projects/Noolympics/code/x_functions.r") #, keep.source = TRUE)
+ 
+data_survey3 <- readr::read_csv("C:/Users/azada/OneDrive/@Projects/Noolympics/survey3/NOlympics_Survey_4.csv")
+df3 <- data_survey3 %>% filter(Bad_Response_Flag != 1)
+
+# names(df3) %>% write.csv("survey_questions.csv")
+
+
+
+pos_5 <- c("Strongly oppose", "Somewhat oppose", "Neutral", "Somewhat support", "Strongly support")
+pos_3 <- c("Oppose", "Neutral", "Support")
+pos_eff5 <- c("Significantly worsen" ,"Somewhat worsen" ,"No impact", "Somewhat improve", "Significantly improve")
+pos_opinion <- c("Strongly worsened my opinion", "Worsened my opinion", "Did not change my opinion", "Improved my opinion", "Strongly improved")
+
+pos_la <- c("LA Resident", "CA Resident")
+
+pos_aware <- c( "Aware", "Unaware", "Not Sure")
+pos_ynm <- c("Yes", "No", "Not Sure")
+o3_Q1_LA_Cnty <-  df3 %>% filter( ) %>% PctCalc('Q1_LA_Cnty' ) %>% 
+  plot_bar(xvar = Q1_LA_Cnty , yvar = pct, relsizex = 1, relsizey = 1, 
+           title = "Do you live in Los Angeles County?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q1_LA_Cnty)))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_la ) #o3_Q1_LA_Cnty
+
+# View(names(df3))
+
+
+df3 <- df3 %>% mutate(Q2_Follow_Sports3 = as.factor(plyr::mapvalues(df3$Q2_Follow_Sports, from = 
+                                                       c("1","2","3","4","5"),
+                                                     to = c("1","2","2","3","3")))) 
+ 
+# df$Q52l <- fct_relevel(df$V52l, "1","2","3","4","5")
+# df3$Q2_Follow3 <- fct_relevel(df$Q2_Follow_Sports, "1","2","3")
+pos_3c <- c("Follow Sports\n Not Closely", "Follow Sports\n  Somewhat/\nModerately Closely", "Follow Sports\n Very/\nExtremely Closely")
+pos_5c <- c("Not Closely", "Somewhat Closely", "Moderately Closely", "Very Closely", "Extremely Closely")
+pos_con5<- c("Not At All", "Slightly", "Somewhat", "Moderately", "Extremely")
+
+o3_Q2_Follow_Sports <-  df3 %>% filter( ) %>% PctCalc('Q2_Follow_Sports') %>% 
+  plot_bar(xvar = Q2_Follow_Sports , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How closely do you follow professional and/or college sports?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q2_Follow_Sports)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_5c )  # o3_Q2_Follow_Sports
+
+#' o3_Q2_Follow_Sports3 <-  df3 %>% filter( ) %>% PctCalc('Q2_Follow_Sports3') %>% 
+#'   plot_bar(xvar = Q2_Follow_Sports3 , yvar = pct, #relsizex = 1, relsizey = 1, 
+#'            title="How closely do you follow professional and/or college sports?",
+#'            subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q2_Follow_Sports3)))),
+#'            #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+#'            #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+#'            x = "", y ="Percent")  + scale_x_discrete(labels = pos_3c )  # o3_Q2_Follow_Sports3
+
+o3_Q2xQ1_Follow_Sports <-   df3 %>% filter( !is.na(Q2_Follow_Sports) ) %>% PctCalcTwoN1('Q2_Follow_Sports', 'Q1_LA_Cnty') %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports ) , yvar = pct, fillvar = as.factor(Q1_LA_Cnty), #relsizex = 1, relsizey = 1, 
+                      title="How closely do you follow professional and/or college sports?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q2_Follow_Sports) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_la )  + scale_x_discrete(labels = pos_5c )  # o3_Q2xQ1_Follow_Sports
+
+o3_Q4_2024_2028 <-  df3 %>% filter( ) %>% PctCalc('Q4_2024_2028') %>% 
+  plot_bar(xvar = Q4_2024_2028 , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How closely have you been following news about LA's bid for the 2024 and 2028 Summer Olympic Games?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q4_2024_2028)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_5c )  # o3_Q4_2024_2028
+
+o3_Q4xQ1_2024_2028 <-   df3 %>% filter( !is.na(Q4_2024_2028) ) %>% PctCalcTwoN1('Q4_2024_2028', 'Q1_LA_Cnty') %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q4_2024_2028 ) , yvar = pct, fillvar = as.factor(Q1_LA_Cnty), #relsizex = 1, relsizey = 1, 
+                      title="How closely have you been following news about LA's bid for the 2024 and 2028 Summer Olympic Games?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q4_2024_2028) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_la )  + scale_x_discrete(labels = pos_5c )  # o3_Q4xQ1_2024_2028
+
+
+o3_Q4xQ3_2024_2028 <-   df3 %>% filter( !is.na(Q4_2024_2028), !is.na(Q2_Follow_Sports3)  ) %>% PctCalcTwoN1('Q2_Follow_Sports3', 'Q4_2024_2028') %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q4_2024_2028), #relsizex = 1, relsizey = 1, 
+                      title="How closely have you been following news about LA's bid for the 2024 and 2028 Summer Olympic Games?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q4_2024_2028) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_5c )  + scale_x_discrete(labels = pos_3c )  # o3_Q4xQ3_2024_2028
+
+#' o3_Q4x_LAxQ3_2024_2028 <-   df3 %>% filter(Q1_LA_Cnty ==1,  !is.na(Q4_2024_2028), !is.na(Q2_Follow_Sports3),  ) %>% PctCalcTwoN1('Q2_Follow_Sports3', 'Q4_2024_2028') %>% 
+#'   plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q4_2024_2028), #relsizex = 1, relsizey = 1, 
+#'                       title="How closely have you been following news about LA's bid for the 2024 and 2028 Summer Olympic Games?",
+#'                       subtitle= paste("LA Only# n: ", NROW(df3 %>% filter(Q1_LA_Cnty ==1, !is.na(Q4_2024_2028) ))),
+#'                       #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+#'                       #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+#'                       x = "", y ="Percent") + scale_fill_discrete(labels = pos_5c )  + scale_x_discrete(labels = pos_3c )  # o3_Q4x_LAxQ3_2024_2028
+
+
+##  .................. #< 9ddb0d7d115055ae991f51ccdc86c865 ># ..................
+##  Q5 Were you previously aware or unaware of how many cities withdrew thei####
+# Q5_Withdrawn_Bids
+
+o3_Q5_Withdrawn_Bids <-  df3 %>% filter( ) %>% PctCalc('Q5_Withdrawn_Bids') %>% 
+  plot_bar(xvar = Q5_Withdrawn_Bids , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="Were you previously aware or unaware of how many cities withdrew their bids for the 2024 Summer Games?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q5_Withdrawn_Bids)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_aware )  # o3_Q5_Withdrawn_Bids
+
+o3_Q5_Withdrawn_Bids_x_Q2_Follow_Sports3 <- df3 %>% filter( !is.na(Q5_Withdrawn_Bids), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q5_Withdrawn_Bids', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q5_Withdrawn_Bids), #relsizex = 1, relsizey = 1, 
+                      title="Were you previously aware or unaware of how many cities withdrew their bids for the 2024 Summer Games?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q5_Withdrawn_Bids) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_aware )  + scale_x_discrete(labels = pos_3c )  # o3_Q5_Withdrawn_Bids_x_Q2_Follow_Sports3
+
+
+o3_Q5_Withdrawn_Bids_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q5_Withdrawn_Bids), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q5_Withdrawn_Bids', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q5_Withdrawn_Bids), #relsizex = 1, relsizey = 1, 
+                      title="Were you previously aware or unaware of how many cities withdrew their bids for the 2024 Summer Games?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q5_Withdrawn_Bids) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_aware )  + scale_x_discrete(labels = pos_la )  # o3_Q5_Withdrawn_Bids_x_Q1_LA_Cnty
+
+
+
+##  .................. #< ed59013ca1c8139ea21ed64749ca8357 ># ..................
+##  How concerned or unconcerned are you about the 2028 Summer Olympics goin####
+# Q6_Over_Budget
+# According to a 2016 study conducted by Oxford University, the average Olympic Games go over budget by 156% and Summer Olympics go over budget by 176%. How concerned or unconcerned are you about the 2028 Summer Olympics going over budget?Según un estudio llevado a cabo en 2016 por la Universidad de Oxford, la media de los Juegos Olímpicos excede el presupuesto por más de un 156% con las Olimpiadas de Verano sobrepasando el presupuesto por un 176%. ¿Cuánto le preocupa que las Olimpiadas de Verano de 2028 excedan el presupuesto fijado?
+o3_Q6_Over_Budget <-  df3 %>% filter( ) %>% PctCalc('Q6_Over_Budget') %>% 
+  plot_bar(xvar = Q6_Over_Budget , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How concerned or unconcerned are you about the 2028 Summer Olympics going over budget?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q6_Over_Budget)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_con5 )  # o3_Q6_Over_Budget
+
+o3_Q6_Over_Budget_x_Q2_Follow_Sports3 <- df3 %>% filter( !is.na(Q6_Over_Budget), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q6_Over_Budget', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q6_Over_Budget), #relsizex = 1, relsizey = 1, 
+                      title= "How concerned or unconcerned are you about the 2028 Summer Olympics going over budget?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q6_Over_Budget) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_3c )  # o3_Q6_Over_Budget_x_Q2_Follow_Sports3
+
+
+o3_Q6_Over_Budget_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q6_Over_Budget), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q6_Over_Budget', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q6_Over_Budget), #relsizex = 1, relsizey = 1, 
+                      title= "How concerned or unconcerned are you about the 2028 Summer Olympics going over budget?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q6_Over_Budget) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_la )  # o3_Q6_Over_Budget_x_Q1_LA_Cnty
+
+o3_Q6_Over_Budget_x_Q2_Follow_Sports3_LAonly <- df3 %>% filter( Q1_LA_Cnty == 1, !is.na(Q6_Over_Budget), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q6_Over_Budget', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q6_Over_Budget), #relsizex = 1, relsizey = 1, 
+                      title= "How concerned or unconcerned are you about the 2028 Summer Olympics going over budget?",
+                      subtitle= paste("LA Residents Only# n: ", NROW(df3 %>% filter(!is.na(Q6_Over_Budget), Q1_LA_Cnty == 1 ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_3c )  # o3_Q6_Over_Budget_x_Q2_Follow_Sports3_LAonly
+
+
+
+##  .................. #< b41dbc53eab1f10ed7265fc076818b1d ># ..................
+##  should LA and California taxpayers be responsible for covering cost over####
+# Ashould LA and California taxpayers be responsible for covering cost overruns from any Olympic Games held in Los Angeles? budget for the 2024 Games indicated that L.A. taxpayers will be responsible for the first $250 million in overages if the Olympics go over budget, then California taxpayers will be responsible for the next $250 million in overages, and then L.A. taxpayers will be responsible for unlimited overages beyond that. The Host City Contract for the 2028 Olympics states that the International Olympic Committee is not liable for any overages.In your opinion, should LA and California taxpayers be responsible for covering cost overruns from any Olympic Games held in Los Angeles?Un presupuesto para los Juegos de 2024 indicó que los contribuyentes de Los Ángeles serán responsables de los primeros $ 250 millones en excedentes si las Olimpiadas superan el presupuesto, luego los contribuyentes de California serán responsables de los próximos $ 250 millones en excedentes, y después los contribuyentes de Los Ángeles serán responsables de nuevo para los excesos ilimitados más allá de eso. El Contrato de la Ciudad Anfitriona para los Juegos Olímpicos de 2028 establece que el Comité Olímpico Internacional no es responsable de excedentes.En su opinión, ¿deberían los contribuyentes de Los Ángeles y California ser responsables de cubrir los excesos de costos de los Juegos Olímpicos celebrados en Los Ángeles?
+
+
+o3_Q7_Overruns <-  df3 %>% filter( ) %>% PctCalc('Q7_Overruns') %>% 
+  plot_bar(xvar = Q7_Overruns , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="Should LA and California taxpayers be responsible for covering cost overruns from any Olympic Games",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q7_Overruns)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_ynm )  # o3_Q7_Overruns
+
+o3_Q7_Overruns_x_Q2_Follow_Sports3 <- df3 %>% filter( !is.na(Q7_Overruns), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q7_Overruns', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q7_Overruns), #relsizex = 1, relsizey = 1, 
+                      title="Should LA and California taxpayers be responsible for covering cost overruns from any Olympic Games",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q7_Overruns) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_ynm )  + scale_x_discrete(labels = pos_3c )  # o3_Q7_Overruns_x_Q2_Follow_Sports3
+
+
+o3_Q7_Overruns_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q7_Overruns), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q7_Overruns', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q7_Overruns), #relsizex = 1, relsizey = 1, 
+                      title="Should LA and California taxpayers be responsible for covering cost overruns from any Olympic Games",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q7_Overruns) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_ynm )  + scale_x_discrete(labels = pos_la )  # o3_Q7_Overruns_x_Q1_LA_Cnty
+
+o3_Q7_Overruns_x_Q2_Follow_Sports3_LAonly <- df3 %>% filter( Q1_LA_Cnty == 1, !is.na(Q7_Overruns), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q7_Overruns', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q7_Overruns), #relsizex = 1, relsizey = 1, 
+                      title="Should LA and California taxpayers be responsible for covering cost overruns from any Olympic Games",
+                      subtitle= paste("LA Residents Only# n: ", NROW(df3 %>% filter(!is.na(Q7_Overruns), Q1_LA_Cnty == 1 ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_ynm )  + scale_x_discrete(labels = pos_3c )  # o3_Q7_Overruns_x_Q2_Follow_Sports3_LAonly
+
+##  .................. #< 90a68bfed391159c2b8e873d0fde05d3 ># ..................
+##  Q8_Rising_Rent How concerned or unconcerned are you about the impact tha####
+# Q8_Rising_Rent
+# How concerned or unconcerned are you about the impact that hosting the Games could have on raising rents in LA?
+# In London, rents in areas by Olympic stadiums and parks rose 71% in the seven years after the city got the bid for the Summer Games. How concerned or unconcerned are you about the impact that hosting the Games could have on raising rents in LA?En Londres, las rentas en áreas cercanas a los parques y a los estadios Olímpicos aumentaron un 71% en los siete años después de que la ciudad ganó la oferta para organizar los Juegos de verano. ¿Qué tan preocupado o despreocupado está con respecto al impacto que podría tener el alojamiento de los Juegos en elevar los alquileres en LA?
+
+o3_Q8_Rising_Rent <-  df3 %>% filter( ) %>% PctCalc('Q8_Rising_Rent') %>% 
+  plot_bar(xvar = Q8_Rising_Rent , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How concerned are you about the impact that the Games could have on raising rents in LA?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q8_Rising_Rent)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_con5 )  # o3_Q8_Rising_Rent
+
+#' o3_Q8_Rising_Rent_x_Q2_Follow_Sports3 <- df3 %>% filter( !is.na(Q8_Rising_Rent), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q8_Rising_Rent', 'Q2_Follow_Sports3' ) %>% 
+#'   plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q8_Rising_Rent), #relsizex = 1, relsizey = 1, 
+#'                       title="How concerned are you about the impact that the Games could have on raising rents in LA?",
+#'                       subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q8_Rising_Rent) ))),
+#'                       #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+#'                       #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+#'                       x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_3c )  # o3_Q8_Rising_Rent_x_Q2_Follow_Sports3
+
+
+o3_Q8_Rising_Rent_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q8_Rising_Rent), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q8_Rising_Rent', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q8_Rising_Rent), #relsizex = 1, relsizey = 1, 
+                      title="How concerned are you about the impact that the Games could have on raising rents in LA?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q8_Rising_Rent) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_la )  # o3_Q8_Rising_Rent_x_Q1_LA_Cnty
+
+#' o3_Q8_Rising_Rent_x_Q2_Follow_Sports3_LAonly <- df3 %>% filter( Q1_LA_Cnty == 1, !is.na(Q8_Rising_Rent), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q8_Rising_Rent', 'Q2_Follow_Sports3' ) %>% 
+#'   plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q8_Rising_Rent), #relsizex = 1, relsizey = 1, 
+#'                       title="How concerned are you about the impact that the Games could have on raising rents in LA?",
+#'                       subtitle= paste("LA Residents Only# n: ", NROW(df3 %>% filter(!is.na(Q8_Rising_Rent), Q1_LA_Cnty == 1 ))),
+#'                       #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+#'                       #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+#'                       x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_3c )  # o3_Q8_Rising_Rent_x_Q2_Follow_Sports3_LAonly
+
+
+##  .................. #< f906064e6b039f4cd1b372e52fe3371e ># ..................
+##  Q9_Displacement How concerned or unconcerned are you about the impact th####
+
+# How concerned or unconcerned are you about the impact that hosting the Games could have on LA's homelessness crisis?
+# In Rio de Janeiro, an estimated 90,000 residents were displaced from their homes as a direct result of the 2016 Summer Olympics. In Atlanta, an estimated 10,000 people were displaced for the 1996 Summer Olympics.How concerned or unconcerned are you about the impact that hosting the Games could have on LA's homelessness crisis?En Río de Janeiro, aproximadamente 90.000 residentes fueron desplazados de sus hogares como resultado directo de los Juegos Olímpicos de Verano de 2016. En Atlanta, se calcula que unas 10.000 personas fueron desplazadas para los Juegos Olímpicos de verano de 1996.¿Qué tan preocupado o despreocupado está usted con respecto al impacto que podría tener la organización de los Juegos en la crisis de las personas sin hogar en Los Ángeles?
+
+o3_Q9_Displacement <-  df3 %>% filter( ) %>% PctCalc('Q9_Displacement') %>% 
+  plot_bar(xvar = Q9_Displacement , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How concerned or unconcerned are you about the impact that hosting the Games could have on LA's homelessness crisis?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q9_Displacement)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_con5 )  # o3_Q9_Displacement
+
+
+o3_Q9_Displacement_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q9_Displacement), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q9_Displacement', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q9_Displacement), #relsizex = 1, relsizey = 1, 
+                      title="How concerned or unconcerned are you about the impact that hosting the Games could have on LA's homelessness crisis?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q9_Displacement) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_la )  # o3_Q9_Displacement_x_Q1_LA_Cnty
+
+
+#How concerned or unconcerned are you about the LAPD coordinating with federal agencies like the Department of Homeland Security, ICE, the Department of Defense, and FBI?
+
+o3_Q10_NSSE <-  df3 %>% filter( ) %>% PctCalc('Q10_NSSE') %>% 
+  plot_bar(xvar = Q10_NSSE , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How concerned or unconcerned are you about the LAPD coordinating with federal agencies like the DHS, DoD, and FBI?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q10_NSSE)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_con5 )  # o3_Q10_NSSE
+
+
+o3_Q10_NSSE_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q10_NSSE), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q10_NSSE', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q10_NSSE), #relsizex = 1, relsizey = 1, 
+                      title="How concerned or unconcerned are you about the LAPD coordinating with federal agencies like the DHS, DoD, and FBI?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q10_NSSE) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_con5 )  + scale_x_discrete(labels = pos_la )  # o3_Q10_NSSE_x_Q1_LA_Cnty
+
+
+##  .................. #< 608f40dc6cd242421c52b3c2cff2540f ># ..................
+##  Ranking                                                                 ####
+
+keep_cols <- grep("Respondent|Q11_Rank_", colnames(df3), value = TRUE)
+dfQ_Budg_Priorities <- subset(df3 , select = keep_cols)# %>%  %>% select( -Q42_6_TEXT )
+# name_Q_Budg_Prior <- c("id",
+#                       "Cost Overruns for Olympics",
+#                       "Funding for LA Public Schools",
+#                       "Repairs / Updates for Public Infrastructure",
+#                       "Construction of Affordable and Supportive Housing",
+#                       "New Transit Projects"
+# )
+# names(dfQ_Budg_Priorities) <- name_Q_Budg_Prior
+# pos_prior <- c("Cost Overruns for Olympics",
+#                "Funding for LA Public Schools",
+#                "Repairs / Updates for Public Infrastructure",
+#                "Construction of Affordable and Supportive Housing",
+#                "New Transit Projects")
+# 
+
+keep_cols <- grep("Respondent|Q11_Rank_|Q1_LA_Cnty", colnames(df3), value = TRUE)
+dfQ_Budg_Priorities1 <- subset(df3 , select = keep_cols)# %>%  %>% select( -Q42_6_TEXT )
+
+dfQ_Budg_Priorities1 <- dfQ_Budg_Priorities1 %>% filter(Q1_LA_Cnty == 1) %>% select(-Q1_LA_Cnty)
+# # dfQ_Budg_Overa[is.na(dfXXXa)] <- 0
+# dfQ_Budg_Priorities1l <- reshape2::melt(dfQ_Budg_Priorities1, id.vars = c("id"))
+# dfQ_Budg_Priorities1l <- dfQ_Budg_Priorities1l[!is.na(dfQ_Budg_Priorities1l$value), ]
+# 
+# # dfQ_Budg_Priorities2 <- dfQ_Budg_Priorities1 
+# # dfQ_Budg_Overb[is.na(dfQ_Budg_Overb)] <- 0
+# dfQ_Budg_Prioritiesl <- reshape2::melt(dfQ_Budg_Priorities, id.vars = c("id","Q1_LA_Cnty"))
+# dfQ_Budg_Prioritiesl <- dfQ_Budg_Prioritiesl[!is.na(dfQ_Budg_Prioritiesl$value), ]
+
+Q30L <- c("Cost Overruns\n for Olympics",
+          "Funding for LA\n Public Schools",
+          "Repairs/Updates\n on Public Infrastructure",
+          "Affordable/ \n Supportive Housing",
+          "New Transit\n Projects")
+
+
+df30_a <- dfQ_Budg_Priorities
+df30_Q1 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_1)) %>% summarise( n())
+df30_Q2 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_2)) %>% summarise( n())
+df30_Q3 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_3)) %>% summarise( n())
+df30_Q4 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_4)) %>% summarise( n())
+df30_Q5 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_5)) %>% summarise( n())
+
+
+names(df30_Q1) <- c("rank", "count")
+names(df30_Q2) <- c("rank", "count")
+names(df30_Q3) <- c("rank", "count")
+names(df30_Q4) <- c("rank", "count")
+names(df30_Q5) <- c("rank", "count")
+
+df30_Q1$Q <- "1"
+df30_Q2$Q <- "2"
+df30_Q3$Q <- "3"
+df30_Q4$Q <- "4"
+df30_Q5$Q <- "5"
+
+df30_Q <- rbind(df30_Q1, df30_Q2, df30_Q3, df30_Q4, df30_Q5)
+df30_Q <- df30_Q[!is.na(df30_Q$rank), ] 
+
+df30_Q$type <- plyr::mapvalues(df30_Q$Q, c("1","2","3","4", "5"), Q30L)
+
+Q11_Rank_matrix <- ggplot(df30_Q, aes(x=rank, y=type)) +
+  geom_point(aes(size=count), shape=21, colour="black", fill="cornsilk") +
+  scale_size_area(max_size=25, guide=FALSE) +
+  geom_text(aes(x=as.numeric(rank)-sqrt(count)/22, label=count), vjust=1, hjust =-.5,
+            colour="grey60", size=6) + 
+  labs(title = "Please rank the following public expenditures in the order that you believe they should be prioritized within the L.A. City budget",
+             subtitle = paste("n: ", NROW(df3 %>% filter(!is.na(Q11_Rank_1)))) ) + theme_ipsum_az()
+
+df30_a <- dfQ_Budg_Priorities1
+df30_Q1 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_1)) %>% summarise( n())
+df30_Q2 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_2)) %>% summarise( n())
+df30_Q3 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_3)) %>% summarise( n())
+df30_Q4 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_4)) %>% summarise( n())
+df30_Q5 <- df30_a %>% group_by(as.factor(df30_a$Q11_Rank_5)) %>% summarise( n())
+
+
+names(df30_Q1) <- c("rank", "count")
+names(df30_Q2) <- c("rank", "count")
+names(df30_Q3) <- c("rank", "count")
+names(df30_Q4) <- c("rank", "count")
+names(df30_Q5) <- c("rank", "count")
+
+df30_Q1$Q <- "1"
+df30_Q2$Q <- "2"
+df30_Q3$Q <- "3"
+df30_Q4$Q <- "4"
+df30_Q5$Q <- "5"
+
+df30_QLA <- rbind(df30_Q1, df30_Q2, df30_Q3, df30_Q4, df30_Q5)
+df30_QLA <- df30_QLA[!is.na(df30_QLA$rank), ] 
+
+
+
+df30_QLA$type <- plyr::mapvalues(df30_QLA$Q, c("1","2","3","4", "5"), Q30L)
+
+Q11_Rank_matrix_LA <- ggplot(df30_QLA, aes(x=rank, y=type)) +
+  geom_point(aes(size=count), shape=21, colour="black", fill="cornsilk") +
+  scale_size_area(max_size=25, guide=FALSE) +
+  geom_text(aes(x=as.numeric(rank)-sqrt(count)/22, label=count), vjust=1, hjust =-.5,
+            colour="grey60", size=6) + 
+  labs(title = "Please rank the following public expenditures in the order that you believe they should be prioritized within the L.A. City budget",
+       subtitle = paste("LA Residents n: ", NROW(df3 %>% filter(Q1_LA_Cnty == 1, !is.na(Q11_Rank_1)))) ) + theme_ipsum_az()
+
+
+
+##  .................. #< 243f9abbaebf681cefb1ad7e8504fb67 ># ..................
+##  Institutions                                                            ####
+
+
+
+
+##  .................. #< 34ba8ceee542a6b8d203360f696e139a ># ..................
+##  Q14_Impact_Your_Life                                                    ####
+o3_Q14_Impact_Your_Life <-  df3 %>% filter( ) %>% PctCalc('Q14_Impact_Your_Life') %>% 
+  plot_bar(xvar = Q14_Impact_Your_Life , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="What impact do you think that hosting the 2028 Summer Olympics in Los Angeles will have on your life?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q14_Impact_Your_Life)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_eff5 )  # o3_Q14_Impact_Your_Life
+
+
+
+o3_Q14_Impact_Your_Life_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q14_Impact_Your_Life), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q14_Impact_Your_Life', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q14_Impact_Your_Life), #relsizex = 1, relsizey = 1, 
+                      title="What impact do you think that hosting the 2028 Summer Olympics in Los Angeles will have on your life?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q14_Impact_Your_Life) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_eff5 )  + scale_x_discrete(labels = pos_la )  # o3_Q14_Impact_Your_Life_x_Q1_LA_Cnty
+
+
+
+##  .................. #< d2c23ebec099dca7f1c457414e52ee4f ># ..................
+##  Q15_Impact_Change How has learning more about LA's bid for the 2028 Summ####
+
+o3_Q15_Impact_Change <-  df3 %>% filter( ) %>% PctCalc('Q15_Impact_Change') %>% 
+  plot_bar(xvar = Q15_Impact_Change , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How has learning more about LA's bid for the 2028 Summer Olympics changed your\n opinion of how the Games will impact the city?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q15_Impact_Change)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_opinion )  # o3_Q15_Impact_Change
+
+
+o3_Q15_Impact_Change_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q15_Impact_Change), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q15_Impact_Change', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q15_Impact_Change), #relsizex = 1, relsizey = 1, 
+                      title="How has learning more about LA's bid for the 2028 Summer Olympics changed your opinion of how the Games will impact the city?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q15_Impact_Change) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_opinion )  + scale_x_discrete(labels = pos_la )  # o3_Q15_Impact_Change_x_Q1_LA_Cnty
+
+o3_Q15_Impact_Change_x_Q2_Follow_Sports3_LAonly <- df3 %>% filter( Q1_LA_Cnty == 1, !is.na(Q15_Impact_Change), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q15_Impact_Change', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q15_Impact_Change), #relsizex = 1, relsizey = 1, 
+                      title="How has learning more about LA's bid for the 2028 Summer Olympics changed your opinion of how the Games will impact the city?",
+                      subtitle= paste("LA Residents Only# n: ", NROW(df3 %>% filter(!is.na(Q15_Impact_Change), Q1_LA_Cnty == 1 ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_opinion )  + scale_x_discrete(labels = pos_3c )  # o3_Q15_Impact_Change_x_Q2_Follow_Sports3_LAonly
+
+
+#Q16
+o3_Q16_Supportive <-  df3 %>% filter( ) %>% PctCalc('Q16_Supportive') %>% 
+  plot_bar(xvar = Q16_Supportive , yvar = pct, #relsizex = 1, relsizey = 1, 
+           title="How supportive or opposed are you of the City of Los Angeles hosting the 2028 Olympics?",
+           subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q16_Supportive)))),
+           #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+           #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+           x = "", y ="Percent")  + scale_x_discrete(labels = pos_5 )  # o3_Q16_Supportive
+
+# o3_Q16_SupportiveW <-  df3a %>% filter( ) %>% PctCalcOne('Q16_Supportive', 'weight_r') %>% 
+#   plot_bar(xvar = Q16_Supportive , yvar = pct, #relsizex = 1, relsizey = 1, 
+#            title="AGEWEIGHT How supportive or opposed are you of the City of Los Angeles hosting the 2028 Olympics?",
+#            subtitle= paste("n: ", NROW(df3a %>% filter(!is.na(Q16_Supportive)))),
+#            #'   mean :', round(weighted.mean( (df %>% filter(  ))$Q_Support , w = (df %>% filter(  ))$weight_r, na.rm = TRUE),1),
+#            #'   median :', (Hmisc::wtd.quantile( (df %>% filter(  ) )$Q_Support, weights= (df%>% filter(  ))$weight_r , probs=.5, normwt = TRUE))),
+#            x = "", y ="Percent")  + scale_x_discrete(labels = pos_5 )  # o3_Q16_SupportiveW
+
+
+o3_Q16_Supportive_x_Q2_Follow_Sports3 <- df3 %>% filter( !is.na(Q16_Supportive), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q16_Supportive', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q16_Supportive), #relsizex = 1, relsizey = 1, 
+                      title="How supportive or opposed are you of the City of Los Angeles hosting the 2028 Olympics?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q16_Supportive) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_5 )  + scale_x_discrete(labels = pos_3c )  # o3_Q16_Supportive_x_Q2_Follow_Sports3
+
+
+o3_Q16_Supportive_x_Q1_LA_Cnty <- df3 %>% filter( !is.na(Q16_Supportive), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwoN1( 'Q16_Supportive', 'Q1_LA_Cnty' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q16_Supportive), #relsizex = 1, relsizey = 1, 
+                      title="How supportive or opposed are you of the City of Los Angeles hosting the 2028 Olympics?",
+                      subtitle= paste("n: ", NROW(df3 %>% filter(!is.na(Q16_Supportive) ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_5)  + scale_x_discrete(labels = pos_la )  # o3_Q16_Supportive_x_Q1_LA_Cnty
+
+# o3_Q16_Supportive_x_Q1_LA_CntyW <- df3a %>% filter( !is.na(Q16_Supportive), !is.na(Q1_LA_Cnty) ) %>% PctCalcTwo(  'Q1_LA_Cnty', 'Q16_Supportive',  'weight_r') %>% 
+#   plot_bar_fill_dodge(xvar = as.factor( Q1_LA_Cnty ) , yvar = pct, fillvar = as.factor(Q16_Supportive), #relsizex = 1, relsizey = 1, 
+#                       title="WEIGHTED How supportive or opposed are you of the City of Los Angeles hosting the 2028 Olympics?",
+#                       subtitle= paste("n: ", NROW(df3a %>% filter(!is.na(Q16_Supportive), !is.na(Q1_LA_Cnty) ))),
+#                       #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+#                       #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+#                       x = "", y ="Percent") + scale_fill_discrete(labels = pos_5)  + scale_x_discrete(labels = pos_la )  # o3_Q16_Supportive_x_Q1_LA_CntyW
+
+
+
+o3_Q16_Supportive_x_Q2_Follow_Sports3_LAonly <- df3 %>% filter( Q1_LA_Cnty == 1, !is.na(Q16_Supportive), !is.na(Q2_Follow_Sports3) ) %>% PctCalcTwoN1( 'Q16_Supportive', 'Q2_Follow_Sports3' ) %>% 
+  plot_bar_fill_dodge(xvar = as.factor( Q2_Follow_Sports3 ) , yvar = pct, fillvar = as.factor(Q16_Supportive), #relsizex = 1, relsizey = 1, 
+                      title="How supportive or opposed are you of the City of Los Angeles hosting the 2028 Olympics?",
+                      subtitle= paste("LA Residents Only n: ", NROW(df3 %>% filter(!is.na(Q16_Supportive), Q1_LA_Cnty == 1 ))),
+                      #'    mean    : Q_LaCountyReside1: ', m_Q_Support_ftb_1," Q_LaCountyReside2: ", m_Q_Support_ftb_2, 
+                      #'\n                  median : Q_LaCountyReside1: ', me_Q_Support_ftb_1," Q_LaCountyReside2: ", me_Q_Support_ftb_2), 
+                      x = "", y ="Percent") + scale_fill_discrete(labels = pos_5 )  + scale_x_discrete(labels = pos_3c )  # o3_Q16_Supportive_x_Q2_Follow_Sports3_LAonly
+
+
+
+
+
+
+```
+
+
+# Much Less Than We've Been Told
+
+```{r slide1, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q16_Supportive
+```
+---
+
+# LA is Only Slightly More Supportive...
+
+```{r slide2, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q16_Supportive_x_Q1_LA_Cnty
+```
+---
+  
+# Most Haven't Been Following Closely
+
+```{r slide3, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q4_2024_2028
+```
+---
+
+# Even Sports Fans Haven't Been Sold
+
+```{r slide4, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q16_Supportive
+```
+---
+
+# And the More People Learn... 
+
+```{r slide5, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q15_Impact_Change
+```
+---
+
+# Few Believe They Will Be Better Off
+
+```{r slide6, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q14_Impact_Your_Life_x_Q1_LA_Cnty
+```
+---
+
+# Impact On Displacement/Homelessness.
+
+```{r slide7, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q9_Displacement
+```
+---
+
+# Impact On Rents and Housing.
+
+```{r slide8, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q8_Rising_Rent_x_Q1_LA_Cnty
+```
+---
+
+# ... Policing and the Security State.
+
+```{r slide9, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q8_Rising_Rent_x_Q1_LA_Cnty
+```
+---
+
+# And For Good Reason
+
+- When They Find Out About
+
+- Funding
+
+- That There is No Budget
+
+- That There Will Be Cost Overruns That They Will Have To Pay For
+
+---
+
+# Who Pays? Who Should Pay?
+
+```{r slide10, echo=FALSE, message=FALSE, warning= FALSE}
+o3_Q7_Overruns_x_Q1_LA_Cnty
+```
+---
+
+# And For Good Reason
+
+- When They Find Out About The Bid Process
+
+```{r slide11, echo=FALSE, message=FALSE, warning= FALSE}
+print(o3_Q5_Withdrawn_Bids_x_Q1_LA_Cnty)
+```
+---
+
+# Because There Are Bigger Problems and Priorities
+
+-- Some LA Residents accept possible costs of games...
+
+-- But most rank it as the least important priority. 
+
+-- So why is this the Mayor and Council's top priority?
+
+---
+
+```{r slide12, echo=FALSE, message=FALSE, warning= FALSE}
+print(Q11_Rank_matrix)
+```
